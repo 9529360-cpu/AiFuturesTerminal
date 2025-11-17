@@ -1,0 +1,16 @@
+{
+  "inputs": [],
+  "servers": {
+    "GitHub": {
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "appModernizationDeploy": {
+      "type": "stdio",
+      "command": "D:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\Common7\\IDE\\VSExtensions\\Microsoft\\AppModernizationForDotNet\\C2cMcpServer.exe",
+      "args": [
+        "--last-modified",
+        "2025-11-05T16:34:51.5134691Z"
+      ]
+    }
+  }
+}

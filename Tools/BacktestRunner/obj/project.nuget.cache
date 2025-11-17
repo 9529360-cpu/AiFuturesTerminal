@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "dgSpecHash": "sCm1+7maB38=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\wangh\\source\\repos\\AiFuturesTerminal\\Tools\\BacktestRunner\\BacktestRunner.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\wangh\\.nuget\\packages\\binance.net\\11.0.0\\binance.net.11.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\cryptoexchange.net\\9.0.0\\cryptoexchange.net.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.configuration\\9.0.0\\microsoft.extensions.configuration.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.0\\microsoft.extensions.configuration.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.configuration.binder\\9.0.0\\microsoft.extensions.configuration.binder.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.0\\microsoft.extensions.dependencyinjection.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.0\\microsoft.extensions.dependencyinjection.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.diagnostics\\9.0.0\\microsoft.extensions.diagnostics.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.diagnostics.abstractions\\9.0.0\\microsoft.extensions.diagnostics.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.http\\9.0.0\\microsoft.extensions.http.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.logging\\9.0.0\\microsoft.extensions.logging.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.0\\microsoft.extensions.logging.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.options\\9.0.0\\microsoft.extensions.options.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.options.configurationextensions\\9.0.0\\microsoft.extensions.options.configurationextensions.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.0\\microsoft.extensions.primitives.9.0.0.nupkg.sha512",
+    "C:\\Users\\wangh\\.nuget\\packages\\system.text.json\\9.0.0\\system.text.json.9.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

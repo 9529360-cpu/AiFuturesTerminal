@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="AiFuturesTerminal.UI.Views.AnalyticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="&#x4EA4;&#x6613;&#x5206;&#x6790;" Height="600" Width="900">
+
+    <DockPanel Margin="8">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock Text="&#x8D77;&#xFF1A;" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <DatePicker x:Name="StartPicker" SelectedDate="{Binding StartDate}" />
+            <TextBlock Text="&#x6B62;&#xFF1A;" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <DatePicker x:Name="EndPicker" SelectedDate="{Binding EndDate}" />
+
+            <TextBlock Text="&#x7B56;&#x7565;&#xFF1A;" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <ComboBox Width="200" ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}" DisplayMemberPath="." />
+
+            <Button Content="&#x5237;&#x65B0;" Command="{Binding RefreshCommand}" Margin="12,0,0,0" />
+        </StackPanel>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="当前模式下：统计数据直接来自币安 Futures（Testnet/Live 模式）" Margin="8" FontWeight="Bold" />
+
+            <DataGrid Grid.Row="0" ItemsSource="{Binding StrategySummaries}" AutoGenerateColumns="False" Margin="0,0,0,8">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="&#x7B56;&#x7565;" Binding="{Binding StrategyName}" />
+                    <DataGridTextColumn Header="&#x51C0;&#x76CA;" Binding="{Binding NetPnl, StringFormat=N2}" />
+                    <DataGridTextColumn Header="&#x80DC;&#x7387;" Binding="{Binding WinRate, StringFormat=P1}" />
+                    <DataGridTextColumn Header="&#x6210;&#x4EA4;" Binding="{Binding TradesCount}" />
+                    <DataGridTextColumn Header="&#x6700;&#x5927;&#x56DE;&#x64A4;" Binding="{Binding MaxDrawdown, StringFormat=N2}" />
+                    <DataGridTextColumn Header="ProfitFactor" Binding="{Binding ProfitFactor, StringFormat=N2}" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <DataGrid Grid.Row="1" ItemsSource="{Binding DailySummaries}" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="&#x65E5;&#x671F;" Binding="{Binding Date}" />
+                    <DataGridTextColumn Header="&#x51C0;&#x76CA;" Binding="{Binding NetPnl, StringFormat=N2}" />
+                    <DataGridTextColumn Header="&#x80DC;&#x7387;" Binding="{Binding WinRate, StringFormat=P1}" />
+                    <DataGridTextColumn Header="&#x6210;&#x4EA4;" Binding="{Binding TradesCount}" />
+                    <DataGridTextColumn Header="&#x6700;&#x5927;&#x56DE;&#x64A4;" Binding="{Binding MaxDrawdown, StringFormat=N2}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="AiFuturesTerminal.UI.Views.StrategyConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="策略参数设置"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner"
+        MinWidth="450">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="12" Orientation="Vertical" Width="420">
+            <!-- Global risk -->
+            <GroupBox Header="全局风控" Margin="0,0,0,8">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock x:Name="TbRiskLabel" Grid.Row="0" Grid.Column="0" Text="单笔风险占比（0.01 = 1%）:" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Width="100" Text="{Binding RiskPerTradePct, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F4}" Margin="0,0,0,4"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="最大名义金额（USDT）:" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Width="100" Text="{Binding MaxNotional, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N0}" Margin="0,0,0,4"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="单笔最大数量（Qty）:" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Width="100" Text="{Binding MaxQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="最小下单步长（Qty）:" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Width="100" Text="{Binding MinQtyStep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbMaxTradesLabel" Grid.Row="4" Grid.Column="0" Text="单日最大开仓次数：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Width="80" Text="{Binding MaxTradesPerDay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbMaxConsecLabel" Grid.Row="5" Grid.Column="0" Text="允许连续亏损次数：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" Width="80" Text="{Binding MaxConsecutiveLoses, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Scalping -->
+            <GroupBox Header="剥头皮策略" Margin="0,0,0,8">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock x:Name="TbScalpFastLabel" Grid.Row="0" Grid.Column="0" Text="快线 MA 长度：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Width="80" Text="{Binding FastMaLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbScalpSlowLabel" Grid.Row="1" Grid.Column="0" Text="慢线 MA 长度：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Width="80" Text="{Binding SlowMaLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbScalpTPLabel" Grid.Row="2" Grid.Column="0" Text="止盈（R 倍）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Width="80" Text="{Binding TakeProfitRMultiple, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbScalpSLLabel" Grid.Row="3" Grid.Column="0" Text="止损（R 倍）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Width="80" Text="{Binding StopLossRMultiple, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbScalpTimeoutLabel" Grid.Row="4" Grid.Column="0" Text="超时平仓（分钟）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Width="80" Text="{Binding ScalpingTimeoutMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Trend -->
+            <GroupBox Header="趋势策略" Margin="0,0,0,8">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock x:Name="TbTrendFastLabel" Grid.Row="0" Grid.Column="0" Text="快线 MA 长度：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Width="80" Text="{Binding TrendFastMaLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbTrendSlowLabel" Grid.Row="1" Grid.Column="0" Text="慢线 MA 长度：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Width="80" Text="{Binding TrendSlowMaLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbTrendTPLabel" Grid.Row="2" Grid.Column="0" Text="止盈（R 倍）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Width="80" Text="{Binding TrendTakeProfitRMultiple, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbTrendSLLabel" Grid.Row="3" Grid.Column="0" Text="止损（R 倍）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Width="80" Text="{Binding TrendStopLossRMultiple, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbTrendMaxHoldingLabel" Grid.Row="4" Grid.Column="0" Text="最长持仓（分钟）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Width="80" Text="{Binding TrendMaxHoldingMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbAtrLabel" Grid.Row="5" Grid.Column="0" Text="ATR 周期：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" Width="80" Text="{Binding AtrPeriod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Range -->
+            <GroupBox Header="区间震荡策略" Margin="0,0,0,12">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock x:Name="TbRangePeriodLabel" Grid.Row="0" Grid.Column="0" Text="布林带周期：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Width="80" Text="{Binding RangePeriod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbRangeBandLabel" Grid.Row="1" Grid.Column="0" Text="布林带宽度（σ）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Width="80" Text="{Binding RangeBandWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbRangeMaxHoldingLabel" Grid.Row="2" Grid.Column="0" Text="最长持仓（分钟）：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Width="80" Text="{Binding RangeMaxHoldingMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+
+                    <TextBlock x:Name="TbRsiLabel" Grid.Row="3" Grid.Column="0" Text="RSI 周期：" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Width="80" Text="{Binding RsiPeriod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnSave" Content="保存" Width="80" Margin="0,0,8,0" IsDefault="True" Click="OnSaveClick"/>
+                <Button x:Name="BtnClose" Content="关闭" Width="80" IsCancel="True"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

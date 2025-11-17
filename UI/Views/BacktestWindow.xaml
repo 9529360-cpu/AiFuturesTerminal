@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="AiFuturesTerminal.UI.Views.BacktestWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="&#x7B56;&#x7565;&#x56DE;&#x6D4B;" Height="600" Width="800">
+
+    <Window.Resources>
+        <Style x:Key="RightAlignCellStyle" TargetType="DataGridCell">
+            <Setter Property="TextBlock.TextAlignment" Value="Right" />
+            <Setter Property="HorizontalContentAlignment" Value="Right" />
+        </Style>
+        <!-- TextBlock style for DataGridTextColumn.ElementStyle -->
+        <Style x:Key="RightAlignTextStyle" TargetType="TextBlock">
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="8">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock Text="&#x7B56;&#x7565;&#xFF1A;" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <ComboBox Width="160" ItemsSource="{Binding AvailableStrategies}" SelectedItem="{Binding SelectedStrategy}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource StrategyKindToDisplayConverter}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Text="&#x4EA4;&#x6613;&#x5BF9;&#xFF1A;" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <TextBox Width="120" Text="{Binding SelectedSymbol}" />
+
+            <TextBlock Text="&#x5F00;&#x59CB;&#x65F6;&#x95F4;&#xFF1A;" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <DatePicker SelectedDate="{Binding StartTime}" />
+            <TextBlock Text="&#x7ED3;&#x675F;&#x65F6;&#x95F4;&#xFF1A;" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <DatePicker SelectedDate="{Binding EndTime}" />
+
+            <Button Content="&#x5F00;&#x59CB;&#x56DE;&#x6D4B;" Command="{Binding RunCommand}" Margin="12,0,0,0" />
+        </StackPanel>
+
+        <!-- Data limit hint: single-request cap for 1m candles -->
+        <TextBlock Text="{Binding DataLimitHint}" Margin="0,4,0,8" Foreground="Gray" FontSize="11" TextWrapping="Wrap" />
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
+                <TextBlock Text="&#x6536;&#x76CA;&#xFF1A;" FontWeight="Bold" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Summary.NetPnl}" Margin="0,0,12,0" />
+                <TextBlock Text="&#x6700;&#x5927;&#x56DE;&#x64A4;&#xFF1A;" FontWeight="Bold" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Summary.MaxDrawdown}" Margin="0,0,12,0" />
+                <TextBlock Text="&#x6210;&#x4EA4;&#x7B14;&#x6570;&#xFF1A;" FontWeight="Bold" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Summary.TradeCount}" Margin="0,0,12,0" />
+                <TextBlock Text="&#x80DC;&#x7387;&#xFF1A;" FontWeight="Bold" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Summary.WinRate, StringFormat={}{0:P1}}" />
+            </StackPanel>
+
+            <StackPanel Margin="12" Grid.Row="1" x:Name="ComparisonPanel">
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,8">
+                <Button Content="&#x4E09;&#x7B56;&#x7565;&#x5BF9;&#x6BD4;" Command="{Binding CompareAllStrategiesCommand}" IsEnabled="{Binding IsNotComparing}" Width="120" Height="28" Margin="0,0,8,0" />
+                <Button Content="&#x53D6;&#x6D88;" Command="{Binding CancelCompareCommand}" IsEnabled="{Binding IsComparing}" Width="80" Height="28" Margin="0,0,8,0" />
+                <TextBlock Text="&#x7ED3;&#x679C;:" VerticalAlignment="Center" Margin="8,0,0,0" />
+                <TextBlock Text="{Binding Comparison.Count}" VerticalAlignment="Center" Margin="4,0,0,0" />
+                <TextBlock Text="{Binding CurrentStrategyName}" VerticalAlignment="Center" Margin="12,0,0,0" />
+              </StackPanel>
+
+              <DataGrid x:Name="ComparisonGrid" ItemsSource="{Binding Comparison}" AutoGenerateColumns="False" Height="300" Margin="0,8,0,0">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="&#x7B56;&#x7565;" Binding="{Binding StrategyName}" Width="*"/>
+                  <DataGridTextColumn Header="&#x51C0;&#x76CA;&#x4E73;" Binding="{Binding NetPnl, StringFormat=N2}" Width="100"/>
+                  <DataGridTextColumn Header="&#x6BDB;&#x5229;&#x6CF0;" Binding="{Binding Summary.GrossProfit, StringFormat=N2}" Width="100"/>
+                  <DataGridTextColumn Header="&#x6BDB;&#x635F;&#x8D2A;" Binding="{Binding Summary.GrossLoss, StringFormat=N2}" Width="100"/>
+                  <DataGridTextColumn Header="&#x5E73;&#x5747;R" Binding="{Binding Summary.AvgR, StringFormat=N2}" Width="80"/>
+                  <DataGridTextColumn Header="&#x76C8;&#x7834;&#x56E0;&#x5B50;" Binding="{Binding ProfitFactor, StringFormat=N2}" Width="90"/>
+                  <DataGridTextColumn Header="&#x80DC;&#x7387;" Binding="{Binding WinRate, StringFormat=P1}" Width="80"/>
+                  <DataGridTextColumn Header="&#x6210;&#x4EA4;&#x7B14;" Binding="{Binding Trades}" Width="70"/>
+                  <DataGridTextColumn Header="&#x6700;&#x5927;&#x56DE;&#x64A4;" Binding="{Binding MaxDrawdown, StringFormat=N2}" Width="90"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </StackPanel>
+
+            <DataGrid x:Name="TradesGrid" Grid.Row="2" ItemsSource="{Binding Trades}" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="&#x5F00;&#x4ED3;&#x65F6;&#x95F4;" Binding="{Binding OpenTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" />
+                    <DataGridTextColumn Header="&#x5E73;&#x4ED3;&#x65F6;&#x95F4;" Binding="{Binding CloseTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" />
+                    <DataGridTextColumn Header="&#x4EA4;&#x6613;&#x5BF9;" Binding="{Binding Symbol}" />
+                    <DataGridTextColumn Header="&#x65B9;&#x5411;" Binding="{Binding Side}" />
+                    <DataGridTextColumn Header="&#x6570;&#x91CF;" Binding="{Binding Quantity}" />
+                    <DataGridTextColumn Header="&#x5F00;&#x4ED3;&#x4EF7;" Binding="{Binding EntryPrice, StringFormat=N2}" />
+                    <DataGridTextColumn Header="&#x5E73;&#x4ED3;&#x4EF7;" Binding="{Binding ExitPrice, StringFormat=N2}" />
+                    <DataGridTextColumn Header="&#x76C8;&#x4E8F;(USDT)" Binding="{Binding RealizedPnl, StringFormat=N2}" />
+                    <DataGridTextColumn Header="&#x624B;&#x7EE3;&#x8D39;(USDT)" Binding="{Binding Fee, StringFormat=N2}" Width="*" ElementStyle="{StaticResource RightAlignTextStyle}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </DockPanel>
+</Window>

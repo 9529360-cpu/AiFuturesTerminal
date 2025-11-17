@@ -1,0 +1,100 @@
+<UserControl x:Class="AiFuturesTerminal.UI.Views.HistoryHostView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             MinHeight="400" MinWidth="700">
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="PositionHistoryView" Source="{Binding Positions}" />
+        <CollectionViewSource x:Key="OrderHistoryView" Source="{Binding Orders}" />
+        <CollectionViewSource x:Key="TradeHistoryView" Source="{Binding Trades}" />
+    </UserControl.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Filters -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8" HorizontalAlignment="Left">
+            <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,4,0" />
+            <DatePicker SelectedDate="{Binding FromDate}" />
+            <TextBlock Text="To:" VerticalAlignment="Center" Margin="8,0,4,0" />
+            <DatePicker SelectedDate="{Binding ToDate}" />
+
+            <TextBlock Text="Symbol:" VerticalAlignment="Center" Margin="8,0,4,0" />
+            <ComboBox Width="120" ItemsSource="{Binding Symbols}" SelectedItem="{Binding SelectedSymbol}" IsEditable="True" />
+
+            <TextBlock Text="Strategy:" VerticalAlignment="Center" Margin="8,0,4,0" />
+            <ComboBox Width="140" ItemsSource="{Binding StrategyIds}" SelectedItem="{Binding SelectedStrategyId}" />
+
+            <TextBlock Text="Backtest Run:" VerticalAlignment="Center" Margin="8,0,4,0" />
+            <ComboBox Width="250" ItemsSource="{Binding BacktestRuns}" SelectedItem="{Binding SelectedBacktestRun}" DisplayMemberPath="RunId" IsEditable="False" />
+            <Button Content="Load Backtest Run" Command="{Binding LoadSelectedRunCommand}" Margin="8,0,0,0" />
+
+            <Button Content="Load" Command="{Binding LoadHistoryCommand}" Margin="12,0,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="1.4*" />
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Header="Position History" Grid.Column="0" Margin="0,0,8,0">
+                <DataGrid ItemsSource="{Binding Source={StaticResource PositionHistoryView}}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" />
+                        <DataGridTextColumn Header="Side" Binding="{Binding PositionSide}" />
+                        <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity, StringFormat=N8}" />
+                        <DataGridTextColumn Header="EntryPrice" Binding="{Binding EntryPrice, StringFormat=F4}" />
+                        <DataGridTextColumn Header="ClosePrice" Binding="{Binding ClosePrice, StringFormat=F4}" />
+                        <DataGridTextColumn Header="OpenTime" Binding="{Binding OpenTime, StringFormat=yyyy-MM-dd HH:mm}" />
+                        <DataGridTextColumn Header="CloseTime" Binding="{Binding CloseTime, StringFormat=yyyy-MM-dd HH:mm}" />
+                        <DataGridTextColumn Header="RealizedPnl" Binding="{Binding RealizedPnl, StringFormat=F4}" />
+                        <DataGridTextColumn Header="StrategyId" Binding="{Binding StrategyId}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+
+            <GroupBox Header="Orders / Trades" Grid.Column="1">
+                <TabControl>
+                    <TabItem Header="Orders">
+                        <DataGrid ItemsSource="{Binding Source={StaticResource OrderHistoryView}}" AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="CreateTime" Binding="{Binding CreateTime, StringFormat=yyyy-MM-dd HH:mm:ss}" />
+                                <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" />
+                                <DataGridTextColumn Header="Side" Binding="{Binding Side}" />
+                                <DataGridTextColumn Header="Type" Binding="{Binding Type}" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
+                                <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=F8}" />
+                                <DataGridTextColumn Header="OrigQty" Binding="{Binding OrigQty, StringFormat=N8}" />
+                                <DataGridTextColumn Header="ExecutedQty" Binding="{Binding ExecutedQty, StringFormat=N8}" />
+                                <DataGridTextColumn Header="AvgPrice" Binding="{Binding AvgPrice, StringFormat=F8}" />
+                                <DataGridTextColumn Header="StrategyId" Binding="{Binding StrategyId}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
+                    <TabItem Header="Trades">
+                        <DataGrid ItemsSource="{Binding Source={StaticResource TradeHistoryView}}" AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Time" Binding="{Binding Time, StringFormat=yyyy-MM-dd HH:mm:ss}" />
+                                <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" />
+                                <DataGridTextColumn Header="Side" Binding="{Binding Side}" />
+                                <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=F8}" />
+                                <DataGridTextColumn Header="Qty" Binding="{Binding Qty, StringFormat=N8}" />
+                                <DataGridTextColumn Header="QuoteQty" Binding="{Binding QuoteQty, StringFormat=F8}" />
+                                <DataGridTextColumn Header="RealizedPnl" Binding="{Binding RealizedPnl, StringFormat=F4}" />
+                                <DataGridTextColumn Header="Commission" Binding="{Binding Commission, StringFormat=F6}" />
+                                <DataGridTextColumn Header="StrategyId" Binding="{Binding StrategyId}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+                </TabControl>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</UserControl>

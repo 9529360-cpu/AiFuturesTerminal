@@ -1,0 +1,11 @@
+﻿<Application x:Class="AiFuturesTerminal.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:AiFuturesTerminal"
+             xmlns:converters="clr-namespace:AiFuturesTerminal.UI.Converters">
+    <Application.Resources>
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <converters:ExecutionModeToDisplayConverter x:Key="ExecutionModeToDisplayConverter" />
+        <converters:StrategyKindToDisplayConverter x:Key="StrategyKindToDisplayConverter" />
+    </Application.Resources>
+</Application>
