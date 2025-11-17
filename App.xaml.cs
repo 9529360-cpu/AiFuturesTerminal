@@ -35,12 +35,10 @@ public partial class App : Application
             ExecutionMode = ExecutionMode.DryRun,
             BinanceUsdFutures = new BinanceUsdFuturesOptions
             {
-                // Testnet API Key / Secret provided by user (kept as configured)
-                ApiKey = "Q7zPHbQERp4Fgkck4lBR8fqt94ObSnKduUvBi95KmKQYfq1kdNSo7PwJQ5Yb4Vhq",
-                ApiSecret = "m998RrkhHmBn8Cwz5SWYYdyTOuRMq6SiHLQqKZcKArlkP3KhQBw4MI8P1ZqKTSJY",
-                // 保持 Testnet 环境
+                // API keys should be provided by user or environment; placeholder kept for dev convenience
+                ApiKey = "",
+                ApiSecret = "",
                 UseTestnet = true,
-                // 使用 U 本位永续 Futures Testnet 官方域名
                 BaseAddress = "https://demo-fapi.binance.com"
             }
         });
@@ -58,32 +56,18 @@ public partial class App : Application
         services.AddSingleton<MarketDataService>();
         services.AddSingleton<AiFuturesTerminal.Core.Analytics.InMemoryTradeBook>();
         services.AddSingleton<IRiskEngine>(sp => new AiFuturesTerminal.Core.Execution.BasicRiskEngine(0.01m));
+
         // Binance adapter using configured options
-        var envOpts = services.BuildServiceProvider().GetService<AiFuturesTerminal.Core.AppEnvironmentOptions>();
-        if (envOpts != null)
-        {
-            services.AddSingleton<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>(sp => new AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter(envOpts.BinanceUsdFutures, sp.GetService<ILogger<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>>()));
-        }
-        else
-        {
-            // fallback to default options
-            services.AddSingleton<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>(sp => new AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter(new AiFuturesTerminal.Core.Exchanges.Binance.BinanceUsdFuturesOptions(), sp.GetService<ILogger<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>>()));
-        }
+        services.AddSingleton<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>(sp => new AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter(sp.GetRequiredService<AppEnvironmentOptions>().BinanceUsdFutures, sp.GetService<ILogger<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>>()));
         services.AddSingleton<AiFuturesTerminal.Core.Exchanges.IBinanceState>(sp => new AiFuturesTerminal.Core.Exchanges.BinanceStateService(sp.GetRequiredService<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>(), sp.GetRequiredService<AppEnvironmentOptions>(), sp.GetService<ILogger<AiFuturesTerminal.Core.Exchanges.BinanceStateService>>()));
 
         // Register BinanceTradeViewService for UI consumption
         services.AddSingleton<Core.Analytics.IBinanceTradeViewService, Core.Analytics.BinanceTradeViewService>();
 
-        // Do not register a global IOrderRouter here. TradingEnvironmentFactory will provide appropriate router per ExecutionMode:
-        // - Backtest/DryRun -> MockOrderRouter
-        // - Testnet/Live  -> BinanceOrderRouter
-
         // TradeBook for recording trades (in-memory)
-        // register persistent sqlite tradebook and expose as ITradeBook via ProtectedTradeBook to prevent writes in Testnet/Live
         services.AddSingleton<Core.Analytics.SqliteTradeBook>();
         services.AddSingleton<Core.Analytics.InMemoryTradeBook>();
-        services.AddSingleton<Core.Analytics.ITradeBook>(sp => new Core.Analytics.ProtectedTradeBook(sp.GetRequiredService<Core.Analytics.SqliteTradeBook>(), sp.GetRequiredService<AppEnvironmentOptions>(), sp.GetService<Microsoft.Extensions.Logging.ILogger<Core.Analytics.ProtectedTradeBook>>()));
-        // also register an InMemoryTradeBook for internal backtest engines if needed
+        services.AddSingleton<Core.Analytics.ITradeBook>(sp => new Core.Analytics.ProtectedTradeBook(sp.GetRequiredService<Core.Analytics.SqliteTradeBook>(), sp.GetRequiredService<AppEnvironmentOptions>(), sp.GetService<ILogger<Core.Analytics.ProtectedTradeBook>>()));
         services.AddSingleton<Core.Analytics.InMemoryTradeBook>();
 
         // register risk bridge and coordinator/guard
@@ -109,7 +93,7 @@ public partial class App : Application
         services.AddSingleton<IStrategyFactory, DefaultStrategyFactory>();
         services.AddSingleton<IBacktestService, BacktestService>();
 
-        // Backtest UI pieces - adjust BacktestViewModel registration to include watchConfig
+        // Backtest UI pieces
         services.AddTransient<UI.ViewModels.BacktestViewModel>(sp => new UI.ViewModels.BacktestViewModel(sp.GetRequiredService<IBacktestService>(), sp.GetRequiredService<StrategyConfig>(), sp.GetRequiredService<StrategyWatchConfig>()));
         services.AddTransient<UI.Views.BacktestWindow>();
         services.AddTransient<System.Func<UI.Views.BacktestWindow>>(sp => () => sp.GetRequiredService<UI.Views.BacktestWindow>());
@@ -118,13 +102,11 @@ public partial class App : Application
         // Strategy config service and config
         services.AddSingleton<StrategyConfigService>();
         services.AddSingleton<StrategyConfig>(sp => sp.GetRequiredService<StrategyConfigService>().LoadAsync().GetAwaiter().GetResult());
-        // StrategyConfig UI pieces
         services.AddTransient<UI.ViewModels.StrategyConfigViewModel>();
         services.AddTransient<UI.Views.StrategyConfigWindow>();
-        // register factory for creating StrategyConfigWindow instances (for reuse after close)
         services.AddTransient<System.Func<UI.Views.StrategyConfigWindow>>(sp => () => sp.GetRequiredService<UI.Views.StrategyConfigWindow>());
 
-        // Strategy watch config service and config (persisted JSON)
+        // Strategy watch config service
         var baseDir = AppContext.BaseDirectory;
         var watchConfigPath = Path.Combine(baseDir, "config", "strategy_watch_config.json");
         var watchConfigService = new StrategyWatchConfigService(watchConfigPath);
@@ -138,11 +120,9 @@ public partial class App : Application
         // Simple file logger for agent decisions
         services.AddSingleton(new SimpleFileLogger("agent_decisions.log"));
 
-        // Register orchestrator and inject logger via constructor (or property)
+        // Orchestrator
         services.AddSingleton<AgentOrchestrator>();
-        // expose orchestrator via interface for VM (optional)
         services.AddSingleton<IAgentOrchestrator>(sp => sp.GetRequiredService<AgentOrchestrator>());
-        // register trading environment factory so MainWindowViewModel can create envs
         services.AddSingleton<AiFuturesTerminal.Core.Environment.ITradingEnvironmentFactory, AiFuturesTerminal.Core.Environment.TradingEnvironmentFactory>();
 
         // TradeBook UI pieces
@@ -154,15 +134,14 @@ public partial class App : Application
         services.AddTransient<UI.Views.TradeBookWindow>();
         services.AddTransient<System.Func<UI.Views.TradeBookWindow>>(sp => () => sp.GetRequiredService<UI.Views.TradeBookWindow>());
 
-        // UI: Today history viewmodel
+        // UI: Today history and full history viewmodels
         services.AddSingleton<UI.ViewModels.TodayHistoryViewModel>();
-        // UI: full history viewmodel
         services.AddSingleton<UI.ViewModels.HistoryViewModel>();
 
-        // register run log sink
+        // run log sink
         services.AddSingleton<AiFuturesTerminal.Core.Orchestration.IAgentRunLogSink, AiFuturesTerminal.Core.Orchestration.InMemoryAgentRunLogSink>();
 
-        // register MainWindowViewModel using factory to provide HistoryViewModel
+        // Main window & VM registration
         services.AddSingleton<MainWindowViewModel>(sp => new MainWindowViewModel(
             sp.GetRequiredService<BacktestEngine>(),
             sp.GetRequiredService<MarketDataService>(),
@@ -191,50 +170,57 @@ public partial class App : Application
         ));
         services.AddSingleton<MainWindow>();
 
-        // register strategy implementations so they can be resolved by DI if needed
+        // strategies
         services.AddTransient<ScalpingMomentumStrategy>();
         services.AddTransient<TrendFollowingStrategy>();
         services.AddTransient<RangeMeanReversionStrategy>();
 
-        // Analytics service
-        // Keep BinanceTradeSyncService available for debug/legacy usage but use BinanceTradeViewService as authoritative view for UI
+        // analytics
         services.AddSingleton<Core.Analytics.BinanceTradeSyncService>(sp => new Core.Analytics.BinanceTradeSyncService(sp.GetRequiredService<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>()));
-        // TradeAnalyticsService will use BinanceTradeViewService when in Testnet/Live
         services.AddSingleton<Core.Analytics.TradeAnalyticsService>(sp => new Core.Analytics.TradeAnalyticsService(
             sp.GetRequiredService<Core.Analytics.ITradeBook>(),
             sp.GetRequiredService<AppEnvironmentOptions>(),
             sp.GetService<Core.Analytics.BinanceTradeViewService>()));
         services.AddTransient<UI.ViewModels.AnalyticsViewModel>();
         services.AddTransient<UI.Views.AnalyticsWindow>();
-        // factory for AnalyticsWindow for injection into MainWindowViewModel
         services.AddTransient<System.Func<UI.Views.AnalyticsWindow>>(sp => () => sp.GetRequiredService<UI.Views.AnalyticsWindow>());
 
-        // register history services (Binance-backed implementations)
-        services.AddSingleton<AiFuturesTerminal.Core.History.ITradeHistoryService>(sp => new AiFuturesTerminal.Core.Exchanges.History.BinanceTradeHistoryService(
+        // register sqlite history store in app dir
+        var historyDbPath = Path.Combine(AppContext.BaseDirectory, "data", "history.db");
+        services.AddSingleton<AiFuturesTerminal.Core.History.IHistoryStore>(sp => new AiFuturesTerminal.Core.History.SqliteHistoryStore(historyDbPath));
+        services.AddSingleton<AiFuturesTerminal.Core.History.IHistorySyncService, AiFuturesTerminal.Core.History.HistorySyncService>();
+
+        // register concrete Binance-backed history services
+        services.AddSingleton<AiFuturesTerminal.Core.Exchanges.History.BinanceTradeHistoryService>(sp => new AiFuturesTerminal.Core.Exchanges.History.BinanceTradeHistoryService(
             sp.GetRequiredService<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>(),
             sp.GetRequiredService<AiFuturesTerminal.Core.History.IHistoryStore>(),
             sp.GetRequiredService<AppEnvironmentOptions>(),
             sp.GetService<ILogger<AiFuturesTerminal.Core.Exchanges.History.BinanceTradeHistoryService>>()));
 
-        services.AddSingleton<AiFuturesTerminal.Core.History.IOrderHistoryService>(sp => new AiFuturesTerminal.Core.Exchanges.History.BinanceOrderHistoryService(
+        services.AddSingleton<AiFuturesTerminal.Core.Exchanges.History.BinanceOrderHistoryService>(sp => new AiFuturesTerminal.Core.Exchanges.History.BinanceOrderHistoryService(
             sp.GetRequiredService<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>(),
             sp.GetRequiredService<AiFuturesTerminal.Core.History.IHistoryStore>(),
             sp.GetService<ILogger<AiFuturesTerminal.Core.Exchanges.History.BinanceOrderHistoryService>>()));
 
+        // register local concrete services
+        services.AddSingleton<AiFuturesTerminal.Core.History.LocalTradeHistoryService>(sp => new AiFuturesTerminal.Core.History.LocalTradeHistoryService(sp.GetRequiredService<AiFuturesTerminal.Core.History.IHistoryStore>()));
+        services.AddSingleton<AiFuturesTerminal.Core.History.LocalOrderHistoryService>(sp => new AiFuturesTerminal.Core.History.LocalOrderHistoryService(sp.GetRequiredService<AiFuturesTerminal.Core.History.IHistoryStore>()));
+
+
+        // delegating services choose between Binance and Local based on environment
+        services.AddSingleton<AiFuturesTerminal.Core.History.ITradeHistoryService>(sp => new AiFuturesTerminal.Core.History.DelegatingTradeHistoryService(
+            sp.GetRequiredService<AppEnvironmentOptions>(),
+            sp.GetRequiredService<AiFuturesTerminal.Core.Exchanges.History.BinanceTradeHistoryService>(),
+            sp.GetRequiredService<AiFuturesTerminal.Core.History.LocalTradeHistoryService>()));
+
+        services.AddSingleton<AiFuturesTerminal.Core.History.IOrderHistoryService>(sp => new AiFuturesTerminal.Core.History.DelegatingOrderHistoryService(
+            sp.GetRequiredService<AppEnvironmentOptions>(),
+            sp.GetRequiredService<AiFuturesTerminal.Core.Exchanges.History.BinanceOrderHistoryService>(),
+            sp.GetRequiredService<AiFuturesTerminal.Core.History.LocalOrderHistoryService>()));
+
+
+        // position history delegates to ITradeHistoryService via BinancePositionHistoryService
         services.AddSingleton<AiFuturesTerminal.Core.History.IPositionHistoryService>(sp => new AiFuturesTerminal.Core.Exchanges.History.BinancePositionHistoryService(sp.GetRequiredService<AiFuturesTerminal.Core.History.ITradeHistoryService>()));
-
-        // register sqlite history store in app dir
-        var historyDbPath = Path.Combine(AppContext.BaseDirectory, "data", "history.db");
-        services.AddSingleton<AiFuturesTerminal.Core.History.IHistoryStore>(sp => new AiFuturesTerminal.Core.History.SqliteHistoryStore(historyDbPath));
-        // register a real history sync service implementation
-        services.AddSingleton<AiFuturesTerminal.Core.History.IHistorySyncService, AiFuturesTerminal.Core.History.HistorySyncService>();
-
-
-        // register backtest history persister
-        services.AddSingleton<Core.Backtest.IBacktestHistoryService, Core.Backtest.BacktestHistoryService>();
-        services.AddSingleton<Core.Backtest.BacktestPersistHookRegistrar>();
-
-        // BacktestPersistHookRegistrar handles BacktestEngine.BacktestResultPersistHook registration via DI.
     }
 
     protected override void OnStartup(StartupEventArgs e)

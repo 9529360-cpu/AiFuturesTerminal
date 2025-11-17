@@ -30,7 +30,10 @@ public sealed class BinanceTradeHistoryService : AiFuturesTerminal.Core.History.
 
     public async Task<IReadOnlyList<TradeHistoryRecord>> QueryTradesAsync(HistoryQuery query, CancellationToken ct = default)
     {
-        // If running in Testnet mode, bypass local history DB and use Binance userTrades exclusively
+        // Validate query
+        if (query == null) throw new ArgumentNullException(nameof(query));
+
+        // Testnet: use only Binance online trades (do not touch local DB)
         if (_envOptions.ExecutionMode == ExecutionMode.Testnet)
         {
             var results = new List<TradeHistoryRecord>();
@@ -38,7 +41,7 @@ public sealed class BinanceTradeHistoryService : AiFuturesTerminal.Core.History.
             {
                 if (string.IsNullOrWhiteSpace(query.Symbol))
                 {
-                    // Binance userTrades requires symbol; return empty for unspecified symbol
+                    _logger?.LogDebug("QueryTradesAsync: Testnet mode but symbol not specified; returning empty list.");
                     return Array.Empty<TradeHistoryRecord>();
                 }
 
@@ -58,22 +61,34 @@ public sealed class BinanceTradeHistoryService : AiFuturesTerminal.Core.History.
                                 var tr = Map(el);
                                 if (tr != null) results.Add(tr);
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                _logger?.LogWarning(ex, "Failed to map trade element from Binance response");
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                try { _logger?.LogWarning(ex, "Failed to fetch trades from Binance in Testnet mode"); } catch { }
+                _logger?.LogWarning(ex, "Failed to fetch trades from Binance in Testnet mode");
             }
 
-            // sort and return
             return results.OrderBy(t => t.Time).ToArray();
         }
 
-        // Fallback behavior: read local store first, and patch recent trades from Binance when near realtime
-        var local = await _store.QueryTradesAsync(query, ct).ConfigureAwait(false);
+        // Default: read from local store and patch recent trades from Binance when near realtime
+        IReadOnlyList<TradeHistoryRecord> local;
+        try
+        {
+            local = await _store.QueryTradesAsync(query, ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to read local trade history store; continuing with empty local list.");
+            local = Array.Empty<TradeHistoryRecord>();
+        }
+
         var resultsList = new List<TradeHistoryRecord>(local ?? Array.Empty<TradeHistoryRecord>());
 
         // If symbol is specified and the query To is near now, fetch recent trades from Binance to patch live data
@@ -102,14 +117,17 @@ public sealed class BinanceTradeHistoryService : AiFuturesTerminal.Core.History.
                                 if (tr != null)
                                     resultsList.Add(tr);
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                _logger?.LogWarning(ex, "Failed to map patched trade element from Binance response");
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                try { _logger?.LogWarning(ex, "Failed to patch recent trades from Binance"); } catch { }
+                _logger?.LogWarning(ex, "Failed to patch recent trades from Binance");
             }
         }
 

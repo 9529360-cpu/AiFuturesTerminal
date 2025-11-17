@@ -14,17 +14,20 @@ public sealed class TodayHistoryViewModel
 {
     private readonly IOrderHistoryService _orderHistory;
     private readonly ITradeHistoryService _tradeHistory;
+    private readonly IPositionHistoryService _positionHistory;
     private readonly StrategyWatchConfig _watchConfig;
 
     public ObservableCollection<OrderHistoryRecord> TodayOrders { get; } = new();
     public ObservableCollection<TradeHistoryRecord> TodayTrades { get; } = new();
+    public ObservableCollection<PositionHistoryRecord> TodayPositions { get; } = new();
 
     public ICommand RefreshTodayHistoryCommand { get; }
 
-    public TodayHistoryViewModel(IOrderHistoryService orderHistory, ITradeHistoryService tradeHistory, StrategyWatchConfig watchConfig)
+    public TodayHistoryViewModel(IOrderHistoryService orderHistory, ITradeHistoryService tradeHistory, IPositionHistoryService positionHistory, StrategyWatchConfig watchConfig)
     {
         _orderHistory = orderHistory ?? throw new ArgumentNullException(nameof(orderHistory));
         _tradeHistory = tradeHistory ?? throw new ArgumentNullException(nameof(tradeHistory));
+        _positionHistory = positionHistory ?? throw new ArgumentNullException(nameof(positionHistory));
         _watchConfig = watchConfig ?? throw new ArgumentNullException(nameof(watchConfig));
 
         RefreshTodayHistoryCommand = new RelayCommand(async _ => await RefreshTodayHistoryAsync(), _ => true);
@@ -48,10 +51,12 @@ public sealed class TodayHistoryViewModel
         // local temporary lists to dedupe and sort
         var ordersAcc = new List<OrderHistoryRecord>();
         var tradesAcc = new List<TradeHistoryRecord>();
+        var positionsAcc = new List<PositionHistoryRecord>();
 
         // dedupe sets
         var orderKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var tradeKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var posKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // If underlying services require symbol, iterate over watched symbols
         var symbols = _watchConfig.Symbols?.Select(s => s.Symbol).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
@@ -78,6 +83,16 @@ public sealed class TodayHistoryViewModel
                         var key = $"{t.TradeId}:{t.Symbol}";
                         if (tradeKeys.Add(key)) tradesAcc.Add(t);
                     }
+                    try
+                    {
+                        var positions = await _positionHistory.QueryPositionsAsync(q, ct).ConfigureAwait(false);
+                        foreach (var p in positions)
+                        {
+                            var key = $"{p.Symbol}:{p.OpenTime}:{p.CloseTime}";
+                            if (posKeys.Add(key)) positionsAcc.Add(p);
+                        }
+                    }
+                    catch { }
                 }
                 catch { }
             }
@@ -107,18 +122,22 @@ public sealed class TodayHistoryViewModel
         // sort by time ascending
         var orderedOrders = ordersAcc.OrderBy(o => o.CreateTime).ToArray();
         var orderedTrades = tradesAcc.OrderBy(t => t.Time).ToArray();
+        var orderedPositions = positionsAcc.OrderBy(p => p.OpenTime).ToArray();
 
         // convert times to local before adding
         var localOrders = orderedOrders.Select(o => o with { CreateTime = o.CreateTime.ToLocalTime(), UpdateTime = o.UpdateTime.ToLocalTime() }).ToArray();
         var localTrades = orderedTrades.Select(t => t with { Time = t.Time.ToLocalTime() }).ToArray();
+        var localPositions = orderedPositions.Select(p => p with { OpenTime = p.OpenTime.ToLocalTime(), CloseTime = p.CloseTime.ToLocalTime() }).ToArray();
 
         // update UI collections on dispatcher
         App.Current.Dispatcher.Invoke(() => {
             TodayOrders.Clear();
             TodayTrades.Clear();
+            TodayPositions.Clear();
 
             foreach (var o in localOrders) TodayOrders.Add(o);
             foreach (var t in localTrades) TodayTrades.Add(t);
+            foreach (var p in orderedPositions) TodayPositions.Add(p);
         });
     }
 }

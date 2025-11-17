@@ -331,6 +331,13 @@ public class MainWindowViewModel : INotifyPropertyChanged, IDisposable
             RefreshCurrentPositionsFromState();
         }
 
+        // ensure SelectedExecutionMode matches environment options at startup
+        try
+        {
+            SelectedExecutionMode = _envOptions.ExecutionMode;
+        }
+        catch { }
+
         // set initial tradebook write status
         UpdateTradeBookWriteStatus();
 
@@ -776,6 +783,9 @@ public class MainWindowViewModel : INotifyPropertyChanged, IDisposable
                 });
                 return;
             }
+
+            // Ensure we clear BinanceHistoryOrders before repopulating to avoid duplicates
+            App.Current.Dispatcher.Invoke(() => BinanceHistoryOrders.Clear());
 
             // use BinanceTradeViewService if available, otherwise fallback to IBinanceState
             if (_binanceTradeViewService != null)
