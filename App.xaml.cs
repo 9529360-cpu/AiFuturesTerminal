@@ -221,6 +221,32 @@ public partial class App : Application
 
         // position history delegates to ITradeHistoryService via BinancePositionHistoryService
         services.AddSingleton<AiFuturesTerminal.Core.History.IPositionHistoryService>(sp => new AiFuturesTerminal.Core.Exchanges.History.BinancePositionHistoryService(sp.GetRequiredService<AiFuturesTerminal.Core.History.ITradeHistoryService>()));
+
+
+        // register order routers
+        services.AddSingleton<AiFuturesTerminal.Core.Execution.IOrderRouter>(sp =>
+        {
+            var env = sp.GetRequiredService<AppEnvironmentOptions>();
+            if (env.ExecutionMode == Core.Execution.ExecutionMode.DryRun)
+            {
+                var mockAdapter = sp.GetService<AiFuturesTerminal.Core.Exchanges.Mock.MockExchangeAdapter>();
+                // ensure there's a mock adapter registered; fall back to creating one
+                if (mockAdapter == null)
+                {
+                    mockAdapter = new AiFuturesTerminal.Core.Exchanges.Mock.MockExchangeAdapter();
+                }
+                return (AiFuturesTerminal.Core.Execution.IOrderRouter)new AiFuturesTerminal.Core.Execution.MockOrderRouter(mockAdapter);
+            }
+
+            // default to Binance router if available
+            var binAdapter = sp.GetService<AiFuturesTerminal.Core.Exchanges.Binance.BinanceAdapter>();
+            if (binAdapter != null)
+                return (AiFuturesTerminal.Core.Execution.IOrderRouter)new AiFuturesTerminal.Core.Execution.BinanceOrderRouter(binAdapter);
+
+            // fallback to mock
+            var fallback = new AiFuturesTerminal.Core.Exchanges.Mock.MockExchangeAdapter();
+            return (AiFuturesTerminal.Core.Execution.IOrderRouter)new AiFuturesTerminal.Core.Execution.MockOrderRouter(fallback);
+        });
     }
 
     protected override void OnStartup(StartupEventArgs e)
